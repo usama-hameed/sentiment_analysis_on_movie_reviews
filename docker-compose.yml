@@ -1,0 +1,67 @@
+version: '3.8'
+services:
+  postgresql:
+    image: postgres
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin123
+      - POSTGRES_DB=MovieReviewsSentiments
+
+    ports:
+      - 5432:5432
+    networks:
+      - my_network
+  rabbitmq:
+    image: rabbitmq:3.8-management-alpine
+    ports:
+      - 15672:15672
+
+    environment:
+      RABBITMQ_DEFAULT_VHOST: vhost
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 30s
+      timeout: 30s
+      retries: 10
+    restart: always
+    networks:
+      - my_network
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: fastapi.Dockerfile
+    command: uvicorn routers:app --host 0.0.0.0 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    restart: always
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+    networks:
+      - my_network
+
+  celery:
+    build:
+      context: .
+      dockerfile: celery.Dockerfile
+    command: celery -A celery_config worker --loglevel=info
+    depends_on:
+      - rabbitmq
+      - fastapi
+      - postgresql
+    networks:
+      - my_network
+
+
+networks:
+  my_network:
