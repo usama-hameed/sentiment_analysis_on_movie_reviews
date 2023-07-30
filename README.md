@@ -1,8 +1,8 @@
 # sentiment_analysis_on_movies_reviews
 
-In this project I am performing sentiment analysis on movie's reveiews.
+In this project I am performing sentiment analysis on movie reviews.
 
-I used Open Source API to get movies data and thier reviews from The Movie Database (https://www.themoviedb.org)
+I used Open Source API to get movies data and thier reviews from The Movie Database (https://www.themoviedb.org).
 
 # How To Run this Application
 1) mkdir sentiment_analysis_on_movies_reviews
